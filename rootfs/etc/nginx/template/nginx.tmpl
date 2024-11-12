@@ -801,7 +801,7 @@ stream {
             internal;
 
             # Ensure that modsecurity will not run on custom error pages or they might be blocked
-            {{ if $modsecurityEnabled }}
+            {{ if and $modsecurityEnabled (ne $errCode 403) }}
             modsecurity off;
             {{ end }}
 
