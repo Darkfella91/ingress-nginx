@@ -75,7 +75,7 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Push
+    - name: Push the Docker image to GitHub Container Registry
       run: |
-          cd images/ && make REGISTRY=ingressnginx NAME=${{ inputs.name }} push
+        docker push ghcr.io/darkfella91/custom-error-pages:latest
 
