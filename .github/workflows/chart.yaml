@@ -33,12 +33,6 @@ jobs:
       - name: Set up Helm Chart Testing
         uses: helm/chart-testing-action@e6669bcd63d7cb57cb4380c33043eebe5d111992 # v2.6.1
 
-      - name: Set up Artifact Hub
-        run: |
-          curl --fail --location https://github.com/artifacthub/hub/releases/download/v1.19.0/ah_1.19.0_linux_amd64.tar.gz --output /tmp/ah.tar.gz
-          echo "0e430493521ce387ca04d79b26646a86f92886dbcceb44985bb71082a9530ca5  /tmp/ah.tar.gz" | shasum --check
-          sudo tar --extract --file /tmp/ah.tar.gz --directory /usr/local/bin ah
-
       - name: Set up Git
         run: |
           git config --global user.name "${GITHUB_ACTOR}"
