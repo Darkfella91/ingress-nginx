@@ -58,7 +58,7 @@ jobs:
     name: Push
     needs: changestag
     if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'kubernetes/ingress-nginx' && needs.changestag.outputs.tag == 'true')
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'Darkfella91/ingress-nginx' && needs.changestag.outputs.tag == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: write
