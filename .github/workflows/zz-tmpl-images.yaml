@@ -78,4 +78,4 @@ jobs:
 
     - name: Push
       run: |
-          cd images/ && make REGISTRY=ghcr.io/Darkfella91 NAME=${{ inputs.name }} push
+          cd images/ && make REGISTRY=ghcr.io/darkfella91 NAME=${{ inputs.name }} push
