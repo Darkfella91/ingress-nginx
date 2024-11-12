@@ -39,6 +39,19 @@ jobs:
           filters: |
             tag:
               - 'images/**/TAG'
+  image-build:
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Build
+        run: |
+          cd images/ && make NAME=${{ inputs.name }} build
 
   image-push:
     name: Push
