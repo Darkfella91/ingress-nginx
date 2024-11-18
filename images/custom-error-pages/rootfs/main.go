@@ -97,6 +97,43 @@ func main() {
 	http.ListenAndServe(fmt.Sprintf(":8080"), nil)
 }
 
+func parseAcceptHeader(header string) []string {
+    parts := strings.Split(header, ",")
+    typeQualityPairs := make([]struct {
+        mediaType string
+        quality   float64
+    }, len(parts))
+
+    for i, part := range parts {
+        part = strings.TrimSpace(part)
+        mediaType := part
+        quality := 1.0
+
+        if qIndex := strings.Index(part, ";q="); qIndex != -1 {
+            mediaType = part[:qIndex]
+            qValue := part[qIndex+3:]
+            if q, err := strconv.ParseFloat(qValue, 64); err == nil {
+                quality = q
+            }
+        }
+
+        typeQualityPairs[i] = struct {
+            mediaType string
+            quality   float64
+        }{mediaType, quality}
+    }
+
+    sort.Slice(typeQualityPairs, func(i, j int) bool {
+        return typeQualityPairs[i].quality > typeQualityPairs[j].quality
+    })
+
+    mediaTypes := make([]string, len(typeQualityPairs))
+    for i, pair := range typeQualityPairs {
+        mediaTypes[i] = pair.mediaType
+    }
+
+    return mediaTypes
+}
 func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Request) {
 	defaultExts, err := mime.ExtensionsByType(defaultFormat)
 	if err != nil || len(defaultExts) == 0 {
@@ -121,20 +158,29 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
 		}
 
 		format := r.Header.Get(FormatHeader)
-		if format == "" || format == "*/*" {
-	            format = defaultFormat
-	            log.Printf("format not specified or is */*. Using %v", format)
+	        if format == "" {
+	            acceptHeader := r.Header.Get("Accept")
+	            if acceptHeader != "" {
+	                mediaTypes := parseAcceptHeader(acceptHeader)
+	                for _, mediaType := range mediaTypes {
+	                    if mediaType == "*/*" {
+	                        continue
+	                    }
+	                    if mediaType == "application/json" || mediaType == "text/html" {
+	                        format = mediaType
+	                        cext, _ := mime.ExtensionsByType(format)
+	                        ext = cext[0]
+	                        break
+	                    }
+	                }
+	            }
+	            if format == "" {
+	                format = defaultFormat
+	                ext = defaultExt
+	                log.Printf("format not specified or no valid media type found. Using %v", format)
+	            }
 	        }
-
-		cext, err := mime.ExtensionsByType(format)
-		if err != nil {
-			log.Printf("unexpected error reading media type extension: %v. Using %v", err, ext)
-			format = defaultFormat
-		} else if len(cext) == 0 {
-			log.Printf("couldn't get media type extension. Using %v", ext)
-		} else {
-			ext = cext[0]
-		}
+		
 		w.Header().Set(ContentType, format)
 
 		codeStr := r.Header.Get(CodeHeader)
