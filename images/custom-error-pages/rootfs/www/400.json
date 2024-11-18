@@ -1,1 +1,5 @@
-{ "message": "Invalid json message received" }
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "The request could not be understood or was missing required parameters."
+}
