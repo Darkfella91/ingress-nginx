@@ -25,7 +25,6 @@ import (
     "strings"
     "time"
 
-    "github.com/prometheus/client_golang/prometheus"
     "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -42,33 +41,6 @@ const (
     ErrFilesPathVar    = "ERROR_FILES_PATH"
     DefaultFormatVar   = "DEFAULT_RESPONSE_FORMAT"
 )
-
-var (
-    requestCount    = prometheus.NewCounterVec(
-        prometheus.CounterOpts{
-            Namespace: "default_http_backend",
-            Subsystem: "http",
-            Name:      "request_count_total",
-            Help:      "Total number of HTTP requests made.",
-        },
-        []string{"proto"},
-    )
-    requestDuration = prometheus.NewHistogramVec(
-        prometheus.HistogramOpts{
-            Namespace: "default_http_backend",
-            Subsystem: "http",
-            Name:      "request_duration_seconds",
-            Help:      "Histogram of the duration (in seconds) of HTTP requests.",
-            Buckets:   prometheus.DefBuckets,
-        },
-        []string{"proto"},
-    )
-)
-
-func init() {
-    prometheus.MustRegister(requestCount)
-    prometheus.MustRegister(requestDuration)
-}
 
 func main() {
     errFilesPath := getEnv(ErrFilesPathVar, "/www")
