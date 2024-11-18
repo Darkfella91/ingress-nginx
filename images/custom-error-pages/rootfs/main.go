@@ -142,7 +142,7 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
 	            codeStr = "404"
 	        }
 		
-		code, err := strconv.Atoi(errCode)
+		code, err := strconv.Atoi(codeStr)
 		if err != nil {
 			code = 404
 			log.Printf("unexpected error reading return code: %v. Using %v", err, code)
