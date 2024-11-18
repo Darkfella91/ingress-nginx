@@ -121,10 +121,10 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
 		}
 
 		format := r.Header.Get(FormatHeader)
-		if format == "" {
-			format = defaultFormat
-			log.Printf("format not specified. Using %v", format)
-		}
+		if format == "" || format == "*/*" {
+	            format = defaultFormat
+	            log.Printf("format not specified or is */*. Using %v", format)
+	        }
 
 		cext, err := mime.ExtensionsByType(format)
 		if err != nil {
