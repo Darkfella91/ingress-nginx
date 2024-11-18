@@ -1,0 +1,5 @@
+{
+  "status": 504,
+  "error": "Gateway Timeout",
+  "message": "The server did not receive a timely response from an upstream server."
+}
