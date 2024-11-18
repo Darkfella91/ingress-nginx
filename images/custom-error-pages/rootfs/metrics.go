@@ -49,7 +49,6 @@ var (
 )
 
 func init() {
-    // Register the metrics with Prometheus
     prometheus.MustRegister(requestCount)
     prometheus.MustRegister(requestDuration)
 }
