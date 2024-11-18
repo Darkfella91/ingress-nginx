@@ -135,7 +135,6 @@ func parseAcceptHeader(header string) []string {
 
     return mediaTypes
 }
-
 func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Request) {
 	defaultExts, err := mime.ExtensionsByType(defaultFormat)
 	if err != nil || len(defaultExts) == 0 {
