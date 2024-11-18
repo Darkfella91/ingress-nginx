@@ -136,6 +136,20 @@ func parseAcceptHeader(header string) []string {
     return mediaTypes
 }
 
+func selectFormat(acceptHeader string, defaultFormat string) (string, string) {
+    mediaTypes := parseAcceptHeader(acceptHeader)
+    for _, mediaType := range mediaTypes {
+        if mediaType == "application/json" || mediaType == "text/html" {
+            cext, _ := mime.ExtensionsByType(mediaType)
+            if len(cext) > 0 {
+                return mediaType, cext[0]
+            }
+        }
+    }
+    cext, _ := mime.ExtensionsByType(defaultFormat)
+    return defaultFormat, cext[0]
+}
+
 func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Request) {
 	defaultExts, err := mime.ExtensionsByType(defaultFormat)
 	if err != nil || len(defaultExts) == 0 {
@@ -160,26 +174,19 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
 		}
 
 		format := r.Header.Get(FormatHeader)
+	        var ext string
 	        if format == "" {
 	            acceptHeader := r.Header.Get("Accept")
-	            if acceptHeader != "" {
-	                mediaTypes := parseAcceptHeader(acceptHeader)
-	                for _, mediaType := range mediaTypes {
-	                    if mediaType == "*/*" {
-	                        continue
-	                    }
-	                    if mediaType == "application/json" || mediaType == "text/html" {
-	                        format = mediaType
-	                        cext, _ := mime.ExtensionsByType(format)
-	                        ext = cext[0]
-	                        break
-	                    }
-	                }
-	            }
-	            if format == "" {
+	            format, ext = selectFormat(acceptHeader, defaultFormat)
+	            log.Printf("Selected format: %v, extension: %v", format, ext)
+	        } else {
+	            cext, _ := mime.ExtensionsByType(format)
+	            if len(cext) > 0 {
+	                ext = cext[0]
+	            } else {
 	                format = defaultFormat
-	                ext = defaultExt
-	                log.Printf("format not specified or no valid media type found. Using %v", format)
+	                cext, _ = mime.ExtensionsByType(defaultFormat)
+	                ext = cext[0]
 	            }
 	        }
 		
