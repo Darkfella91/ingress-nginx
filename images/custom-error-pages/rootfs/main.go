@@ -115,13 +115,14 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
             scode := strconv.Itoa(code)
             file := fmt.Sprintf("%v/%cxx%v", path, scode[0], ext)
             if err := serveFile(w, r, file, code, format); err != nil {
+                w.Header().Set(ContentType, "text/plain")
                 w.WriteHeader(http.StatusNotFound)
                 http.NotFound(w, r)
                 return
             }
-        } else {
-            w.WriteHeader(code)
         }
+
+        w.WriteHeader(code)
 
         duration := time.Since(start).Seconds()
         proto := fmt.Sprintf("%d.%d", r.ProtoMajor, r.ProtoMinor)
