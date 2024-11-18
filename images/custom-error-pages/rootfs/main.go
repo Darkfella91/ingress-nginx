@@ -116,7 +116,6 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
             file := fmt.Sprintf("%v/%cxx%v", path, scode[0], ext)
             if err := serveFile(w, r, file, code, format); err != nil {
                 w.Header().Set(ContentType, "text/plain")
-                w.WriteHeader(http.StatusNotFound)
                 http.NotFound(w, r)
                 return
             }
