@@ -1,1 +1,5 @@
-500 json
+{
+  "status": 500,
+  "error": "Internal Server Error",
+  "message": "An unexpected error occurred on the server."
+}
