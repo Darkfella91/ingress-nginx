@@ -44,8 +44,25 @@ const (
 )
 
 var (
-    requestCount    = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "request_count"}, []string{"proto"})
-    requestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: "request_duration_seconds"}, []string{"proto"})
+    requestCount    = prometheus.NewCounterVec(
+        prometheus.CounterOpts{
+            Namespace: "default_http_backend",
+            Subsystem: "http",
+            Name:      "request_count_total",
+            Help:      "Total number of HTTP requests made.",
+        },
+        []string{"proto"},
+    )
+    requestDuration = prometheus.NewHistogramVec(
+        prometheus.HistogramOpts{
+            Namespace: "default_http_backend",
+            Subsystem: "http",
+            Name:      "request_duration_seconds",
+            Help:      "Histogram of the duration (in seconds) of HTTP requests.",
+            Buckets:   prometheus.DefBuckets,
+        },
+        []string{"proto"},
+    )
 )
 
 func init() {
