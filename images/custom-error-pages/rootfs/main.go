@@ -137,7 +137,11 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
 		}
 		w.Header().Set(ContentType, format)
 
-		errCode := r.Header.Get(CodeHeader)
+		codeStr := r.Header.Get(CodeHeader)
+	        if codeStr == "" {
+	            codeStr = "404"
+	        }
+		
 		code, err := strconv.Atoi(errCode)
 		if err != nil {
 			code = 404
