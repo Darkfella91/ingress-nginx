@@ -102,7 +102,6 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
             code = 404
             log.Printf("unexpected error reading return code: %v. Using %v", err, code)
         }
-        w.WriteHeader(code)
 
         if !strings.HasPrefix(ext, ".") {
             ext = "." + ext
@@ -116,8 +115,12 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
             scode := strconv.Itoa(code)
             file := fmt.Sprintf("%v/%cxx%v", path, scode[0], ext)
             if err := serveFile(w, r, file, code, format); err != nil {
+                w.WriteHeader(http.StatusNotFound)
                 http.NotFound(w, r)
+                return
             }
+        } else {
+            w.WriteHeader(code)
         }
 
         duration := time.Since(start).Seconds()
