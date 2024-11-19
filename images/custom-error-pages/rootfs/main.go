@@ -159,7 +159,6 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		ext := defaultExt
 
 		if os.Getenv("DEBUG") != "" {
 			w.Header().Set(FormatHeader, r.Header.Get(FormatHeader))
@@ -174,26 +173,21 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
 		}
 
 		format := r.Header.Get(FormatHeader)
-		var ext string // Declare ext once here
-		
-		if format == "" {
-		    acceptHeader := r.Header.Get("Accept")
-		    format, ext = selectFormat(acceptHeader, defaultFormat)
-		    log.Printf("Selected format: %v, extension: %v", format, ext)
-		} else {
-		    cext, _ := mime.ExtensionsByType(format)
-		    if len(cext) > 0 {
-		        ext = cext[0]
-		    } else {
-		        format = defaultFormat
-		        cext, _ = mime.ExtensionsByType(defaultFormat)
-		        if len(cext) > 0 {
-		            ext = cext[0]
-		        } else {
-		            ext = "" // Fallback to an empty string or handle this case as needed
-		        }
-		    }
-		}
+	        var ext string
+	        if format == "" {
+	            acceptHeader := r.Header.Get("Accept")
+	            format, ext = selectFormat(acceptHeader, defaultFormat)
+	            log.Printf("Selected format: %v, extension: %v", format, ext)
+	        } else {
+	            cext, _ := mime.ExtensionsByType(format)
+	            if len(cext) > 0 {
+	                ext = cext[0]
+	            } else {
+	                format = defaultFormat
+	                cext, _ = mime.ExtensionsByType(defaultFormat)
+	                ext = cext[0]
+	            }
+	        }
 		
 		w.Header().Set(ContentType, format)
 
