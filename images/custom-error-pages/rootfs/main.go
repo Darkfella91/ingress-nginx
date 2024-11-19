@@ -174,7 +174,8 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
 		}
 
 		format := r.Header.Get(FormatHeader)
-	        var ext string
+	        var ext string // Declare ext once here
+	        
 	        if format == "" {
 	            acceptHeader := r.Header.Get("Accept")
 	            format, ext = selectFormat(acceptHeader, defaultFormat)
@@ -186,9 +187,12 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
 	            } else {
 	                format = defaultFormat
 	                cext, _ = mime.ExtensionsByType(defaultFormat)
-	                ext = cext[0]
+	                if len(cext) > 0 {
+	                    ext = cext[0]
+	                } else {
+	                    ext = "" // Fallback to an empty string or handle this case as needed
+	                }
 	            }
-	        }
 		
 		w.Header().Set(ContentType, format)
 
