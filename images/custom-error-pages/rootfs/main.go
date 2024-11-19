@@ -186,6 +186,7 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
 	            } else {
 	                format = defaultFormat
 	                cext, _ = mime.ExtensionsByType(defaultFormat)
+	                ext = cext[0]
 	            }
 	        }
 		
