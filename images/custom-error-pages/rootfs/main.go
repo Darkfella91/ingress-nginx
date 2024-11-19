@@ -1,12 +1,9 @@
 /*
 Copyright 2017 The Kubernetes Authors.
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +23,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"sort"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -98,58 +94,6 @@ func main() {
 	http.ListenAndServe(fmt.Sprintf(":8080"), nil)
 }
 
-func parseAcceptHeader(header string) []string {
-    parts := strings.Split(header, ",")
-    typeQualityPairs := make([]struct {
-        mediaType string
-        quality   float64
-    }, len(parts))
-
-    for i, part := range parts {
-        part = strings.TrimSpace(part)
-        mediaType := part
-        quality := 1.0
-
-        if qIndex := strings.Index(part, ";q="); qIndex != -1 {
-            mediaType = part[:qIndex]
-            qValue := part[qIndex+3:]
-            if q, err := strconv.ParseFloat(qValue, 64); err == nil {
-                quality = q
-            }
-        }
-
-        typeQualityPairs[i] = struct {
-            mediaType string
-            quality   float64
-        }{mediaType, quality}
-    }
-
-    sort.Slice(typeQualityPairs, func(i, j int) bool {
-        return typeQualityPairs[i].quality > typeQualityPairs[j].quality
-    })
-
-    mediaTypes := make([]string, len(typeQualityPairs))
-    for i, pair := range typeQualityPairs {
-        mediaTypes[i] = pair.mediaType
-    }
-
-    return mediaTypes
-}
-
-func selectFormat(acceptHeader string, defaultFormat string) (string, string) {
-    mediaTypes := parseAcceptHeader(acceptHeader)
-    for _, mediaType := range mediaTypes {
-        if mediaType == "application/json" || mediaType == "text/html" {
-            cext, _ := mime.ExtensionsByType(mediaType)
-            if len(cext) > 0 {
-                return mediaType, cext[0]
-            }
-        }
-    }
-    cext, _ := mime.ExtensionsByType(defaultFormat)
-    return defaultFormat, cext[0]
-}
-
 func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Request) {
 	defaultExts, err := mime.ExtensionsByType(defaultFormat)
 	if err != nil || len(defaultExts) == 0 {
@@ -159,6 +103,7 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
+		ext := defaultExt
 
 		if os.Getenv("DEBUG") != "" {
 			w.Header().Set(FormatHeader, r.Header.Get(FormatHeader))
@@ -173,29 +118,27 @@ func errorHandler(path, defaultFormat string) func(http.ResponseWriter, *http.Re
 		}
 
 		format := r.Header.Get(FormatHeader)
-	        var ext string
-	        if format == "" {
-	            acceptHeader := r.Header.Get("Accept")
-	            format, ext = selectFormat(acceptHeader, defaultFormat)
-	            log.Printf("Selected format: %v, extension: %v", format, ext)
-	        } else {
-	            cext, _ := mime.ExtensionsByType(format)
-	            if len(cext) > 0 {
-	                ext = cext[0]
-	            } else {
-	                format = defaultFormat
-	                cext, _ = mime.ExtensionsByType(defaultFormat)
-	                ext = cext[0]
-	            }
+		if format == "" || format == "*/*" {
+	            format = defaultFormat
+	            log.Printf("format not specified or is */*. Using %v", format)
 	        }
-		
+
+		cext, err := mime.ExtensionsByType(format)
+		if err != nil {
+			log.Printf("unexpected error reading media type extension: %v. Using %v", err, ext)
+			format = defaultFormat
+		} else if len(cext) == 0 {
+			log.Printf("couldn't get media type extension. Using %v", ext)
+		} else {
+			ext = cext[0]
+		}
 		w.Header().Set(ContentType, format)
 
 		codeStr := r.Header.Get(CodeHeader)
 	        if codeStr == "" {
 	            codeStr = "404"
 	        }
-		
+
 		code, err := strconv.Atoi(codeStr)
 		if err != nil {
 			code = 404
